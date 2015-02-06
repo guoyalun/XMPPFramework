@@ -141,6 +141,32 @@
 - (NSString *)retrieveSubscriptions;
 - (NSString *)retrieveSubscriptionsForNode:(NSString *)node;
 
+
+/**
+ * Fetches the current PubSub items from the server.
+ * You can fetch all items, or just items for a particular node.
+ *
+ * Keep in mind that your PubSub items don't typically disappear when you disconnect.
+ * That is, your items remain intact as the client connects and disconnects.
+ *
+ * @param node
+ *
+ *     Optional node name if you wish to only retrieve items for a particular node.
+ *
+ * @return uuid
+ *
+ *     The return value is the unique elementID of the IQ stanza that was sent.
+ *
+ * The server's response to the request will be reported via the appropriate delegate methods.
+ *
+ * @see xmppPubSub:didRetrieveItems:
+ * @see xmppPubSub:didNotRetrieveItems:
+ *
+ * @see xmppPubSub:didRetrieveItems:forNode:
+ * @see xmppPubSub:didNotRetrieveItems:forNode:
+ **/
+- (NSString *)retrieveItemsForNode:(NSString *)node;
+
 /**
  * @param node
  * 
@@ -323,6 +349,12 @@
 
 - (void)xmppPubSub:(XMPPPubSub *)sender didRetrieveSubscriptions:(XMPPIQ *)iq forNode:(NSString *)node;
 - (void)xmppPubSub:(XMPPPubSub *)sender didNotRetrieveSubscriptions:(XMPPIQ *)iq forNode:(NSString *)node;
+
+- (void)xmppPubSub:(XMPPPubSub *)sender didRetrieveItems:(XMPPIQ *)iq;
+- (void)xmppPubSub:(XMPPPubSub *)sender didNotRetrieveItems:(XMPPIQ *)iq;
+
+- (void)xmppPubSub:(XMPPPubSub *)sender didRetrieveItems:(XMPPIQ *)iq forNode:(NSString *)node;
+- (void)xmppPubSub:(XMPPPubSub *)sender didNotRetrieveItems:(XMPPIQ *)iq forNode:(NSString *)node;
 
 - (void)xmppPubSub:(XMPPPubSub *)sender didConfigureSubscriptionToNode:(NSString *)node withResult:(XMPPIQ *)iq;
 - (void)xmppPubSub:(XMPPPubSub *)sender didNotConfigureSubscriptionToNode:(NSString *)node withError:(XMPPIQ *)iq;

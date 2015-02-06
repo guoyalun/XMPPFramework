@@ -22,6 +22,7 @@
 	NSMutableDictionary *subscribeDict;
 	NSMutableDictionary *unsubscribeDict;
 	NSMutableDictionary *retrieveDict;
+    NSMutableDictionary *itemsDict;
 	NSMutableDictionary *configSubDict;
 	NSMutableDictionary *createDict;
 	NSMutableDictionary *deleteDict;
@@ -70,6 +71,7 @@
 		subscribeDict   = [[NSMutableDictionary alloc] init];
 		unsubscribeDict = [[NSMutableDictionary alloc] init];
 		retrieveDict    = [[NSMutableDictionary alloc] init];
+        itemsDict       = [[NSMutableDictionary alloc] init];
 		configSubDict   = [[NSMutableDictionary alloc] init];
 		createDict      = [[NSMutableDictionary alloc] init];
 		deleteDict      = [[NSMutableDictionary alloc] init];
@@ -103,6 +105,7 @@
 	[subscribeDict   removeAllObjects];
 	[unsubscribeDict removeAllObjects];
 	[retrieveDict    removeAllObjects];
+    [itemsDict       removeAllObjects];
 	[configSubDict   removeAllObjects];
 	[createDict      removeAllObjects];
 	[deleteDict      removeAllObjects];
@@ -273,6 +276,106 @@
 		[retrieveDict removeObjectForKey:elementID];
 		return YES;
 	}
+    else if ((node = [itemsDict objectForKey:elementID]))
+    {
+        // Example retrieve success response:
+        //
+        // <iq type='result' from='pubsub.shakespeare.lit' to='francisco@denmark.lit/barracks' id='items1'>
+        //      <pubsub xmlns='http://jabber.org/protocol/pubsub'>
+        //          <items node='princely_musings'>
+        //              <item id='368866411b877c30064a5f62b917cffe'>
+        //                  <entry xmlns='http://www.w3.org/2005/Atom'>
+        //                      <title>The Uses of This World</title>
+        //                      <summary> O, that this too too solid flesh would melt
+        //                                Thaw and resolve itself into a dew!
+        //                      </summary>
+        //                      <link rel='alternate' type='text/html'
+        //                            href='http://denmark.lit/2003/12/13/atom03'/>
+        //                      <id>tag:denmark.lit,2003:entry-32396</id>
+        //                      <published>2003-12-12T17:47:23Z</published>
+        //                      <updated>2003-12-12T17:47:23Z</updated>
+        //                  </entry>
+        //               </item>
+        //               <item id='3300659945416e274474e469a1f0154c'>
+        //                  <entry xmlns='http://www.w3.org/2005/Atom'>
+        //                      <title>Ghostly Encounters</title>
+        //                      <summary>
+        //                          O all you host of heaven! O earth! what else?
+        //                          And shall I couple hell? O, fie! Hold, hold, my heart;
+        //                          And you, my sinews, grow not instant old,
+        //                          But bear me stiffly up. Remember thee!
+        //                      </summary>
+        //                      <link rel='alternate' type='text/html'
+        //                            href='http://denmark.lit/2003/12/13/atom03'/>
+        //                      <id>tag:denmark.lit,2003:entry-32396</id>
+        //                      <published>2003-12-12T23:21:34Z</published>
+        //                      <updated>2003-12-12T23:21:34Z</updated>
+        //                  </entry>
+        //              </item>
+        //              <item id='4e30f35051b7b8b42abe083742187228'>
+        //                  <entry xmlns='http://www.w3.org/2005/Atom'>
+        //                       <title>Alone</title>
+        //                       <summary>
+        //                          Now I am alone.
+        //                          O, what a rogue and peasant slave am I!
+        //                      </summary>
+        //                      <link rel='alternate' type='text/html'
+        //                          href='http://denmark.lit/2003/12/13/atom03'/>
+        //                      <id>tag:denmark.lit,2003:entry-32396</id>
+        //                      <published>2003-12-13T11:09:53Z</published>
+        //                      <updated>2003-12-13T11:09:53Z</updated>
+        //                   </entry>
+        //              </item>
+        //              <item id='ae890ac52d0df67ed7cfdf51b644e901'>
+        //                  <entry xmlns='http://www.w3.org/2005/Atom'>
+        //                      <title>Soliloquy</title>
+        //                      <summary>
+        //                          To be, or not to be: that is the question:
+        //                          Whether 'tis nobler in the mind to suffer
+        //                          The slings and arrows of outrageous fortune,
+        //                          Or to take arms against a sea of troubles,
+        //                          And by opposing end them?
+        //                      </summary>
+        //                      <link rel='alternate' type='text/html'
+        //                          href='http://denmark.lit/2003/12/13/atom03'/>
+        //                      <id>tag:denmark.lit,2003:entry-32397</id>
+        //                      <published>2003-12-13T18:30:02Z</published>
+        //                      <updated>2003-12-13T18:30:02Z</updated>
+        //                  </entry>
+        //              </item>
+        //          </items>
+        //        </pubsub>
+        //  </iq>
+        //
+        // Example retrieve error response:
+        //
+        //  <iq type='error' from='pubsub.shakespeare.lit' to='francisco@denmark.lit/barracks'
+        //      id='items1'>
+        //      <error type='modify'>
+        //        <bad-request xmlns='urn:ietf:params:xml:ns:xmpp-stanzas'/>
+        //        <subid-required xmlns='http://jabber.org/protocol/pubsub#errors'/>
+        //      </error>
+        //  </iq>
+        
+        
+        if ([[iq type] isEqualToString:@"result"])
+        {
+            if ([node isKindOfClass:[NSNull class]])
+                [multicastDelegate xmppPubSub:self didRetrieveItems:iq];
+            else
+                [multicastDelegate xmppPubSub:self didRetrieveItems:iq forNode:node];
+        }
+        else
+        {
+            if ([node isKindOfClass:[NSNull class]])
+                [multicastDelegate xmppPubSub:self didNotRetrieveItems:iq];
+            else
+                [multicastDelegate xmppPubSub:self didNotRetrieveItems:iq forNode:node];
+        }
+        
+        [itemsDict removeObjectForKey:elementID];
+        return YES;
+    }
 	else if ((node = [configSubDict objectForKey:elementID]))
 	{
 		// Example configure subscription success response:
@@ -676,6 +779,50 @@
 	[xmppStream sendElement:iq];
 	return uuid;
 }
+
+- (NSString *)retrieveItemsForNode:(NSString *)aNode
+{
+    // Parameter aNode is optional
+    
+    // In-case aNode is mutable
+    NSString *node = [aNode copy];
+    
+    // Generate uuid and add to dict
+    NSString *uuid = [xmppStream generateUUID];
+    dispatch_async(moduleQueue, ^{
+        if (node)
+            [itemsDict setObject:node forKey:uuid];
+        else
+            [itemsDict setObject:[NSNull null] forKey:uuid];
+    });
+    
+    // Get items for all nodes:
+    //
+    //  <iq type='get'
+    //      from='francisco@denmark.lit/barracks'
+    //      to='pubsub.shakespeare.lit'
+    //      id='items1'>
+    //    <pubsub xmlns='http://jabber.org/protocol/pubsub'>
+    //          <items node='princely_musings'/>
+    //    </pubsub>
+    //  </iq>
+    //
+    
+    NSXMLElement *subscriptions = [NSXMLElement elementWithName:@"items"];
+    if (node) {
+        [subscriptions addAttributeWithName:@"node" stringValue:node];
+    }
+    
+    NSXMLElement *pubsub = [NSXMLElement elementWithName:@"pubsub" xmlns:XMLNS_PUBSUB];
+    [pubsub addChild:subscriptions];
+    
+    XMPPIQ *iq = [XMPPIQ iqWithType:@"get" to:serviceJID elementID:uuid];
+    [iq addChild:pubsub];
+    
+    [xmppStream sendElement:iq];
+    return uuid;
+}
+
 
 - (NSString *)configureSubscriptionToNode:(NSString *)aNode
                                   withJID:(XMPPJID *)myBareOrFullJid
